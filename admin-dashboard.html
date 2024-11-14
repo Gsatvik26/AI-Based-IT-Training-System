@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        /* Body styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        nav {
+            background-color: #1f42bfeb;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 15px;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            background-color: #575757;
+            border-radius: 4px;
+        }
+
+        .admin-container {
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        .form-container, .table-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-container input,
+        .form-container select,
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            background-color: #1f42bfeb;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #575757;
+        }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-container th, .table-container td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .table-container th {
+            background-color: #f2f2f2;
+        }
+
+        .table-container button {
+            background-color: #ff4d4d;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .table-container button:hover {
+            background-color: #d94343;
+        }
+
+        .logout-link {
+            text-align: center;
+            display: block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #1f42bfeb;
+        }
+
+        .logout-link:hover {
+            color: #575757;
+        }
+    </style>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+    <p>Welcome, Admin!</p>
+
+    <!-- User Creation Form -->
+    <div class="admin-container">
+        <div class="form-container">
+            <h2>Create User</h2>
+            <form id="createUserForm">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <br>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <br>
+                <label for="role">Role:</label>
+                <select id="role" name="role">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <br>
+                <button type="submit">Create User</button>
+            </form>
+            <p id="responseMessage"></p>
+        </div>
+    </div>
+    
+
+        <!-- User List and Actions -->
+        <div class="table-container">
+            <h2>Manage Users</h2>
+            <table id="userTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Assessment List and Actions -->
+        <div class="table-container">
+            <h2>Manage Assessments</h2>
+            <table id="assessmentTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>MCQ Score</th>
+                        <th>Descriptive Score</th>
+                        <th>Total Score</th>
+                        <th>MCQ Answer</th>
+                        <th>Descriptive Answer</th>
+                        <th>Evaluation Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Fetch all users
+        async function fetchUsers() {
+            const response = await fetch('/users');
+            const users = await response.json();
+            const tbody = document.querySelector('#userTable tbody');
+            tbody.innerHTML = '';
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.role}</td>
+                    <td>
+                        <button onclick="editUser(${user.id})">Edit</button>
+                        <button onclick="deleteUser(${user.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Fetch all assessments
+        async function fetchAssessments() {
+            const response = await fetch('/assessments1');
+            const assessments = await response.json();
+            const tbody = document.querySelector('#assessmentTable tbody');
+            tbody.innerHTML = '';
+            assessments.forEach(assessment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${assessment.id}</td>
+                    <td>${assessment.mcq_score}</td>
+                    <td>${assessment.descriptive_score}</td>
+                    <td>${assessment.total_score}</td>
+                    <td>${assessment.mcq_answer}</td>
+                    <td>${assessment.descriptive_answer}</td>
+                    <td>${assessment.evaluation_status}</td>
+                    <td>
+                        <button onclick="deleteAssessment(${assessment.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Delete user
+        async function deleteUser(id) {
+            await fetch(`/users/${id}`, { method: 'DELETE' });
+            fetchUsers();  // Re-fetch users after deletion
+        }
+
+        // Delete assessment
+        async function deleteAssessment(id) {
+            await fetch(`/assessments1/${id}`, { method: 'DELETE' });
+            fetchAssessments();  // Re-fetch assessments after deletion
+        }
+
+        // Initial fetch when the page loads
+        fetchUsers();
+        fetchAssessments();
+
+        document.getElementById('createUserForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const role = document.getElementById('role').value;
+
+        try {
+            const response = await fetch('/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password, role })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.getElementById('responseMessage').textContent = result.message;
+            } else {
+                document.getElementById('responseMessage').textContent = result.error || 'Error creating user';
+            }
+        } catch (error) {
+            document.getElementById('responseMessage').textContent = 'Request failed';
+        }
+    });
+    </script>
+</body>
+</html>

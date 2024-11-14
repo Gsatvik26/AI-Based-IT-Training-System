@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Courses</title>
+    <style>
+        body {
+            background-image: url(images/login.jpg);
+            background-size: cover;
+            background-position: center;
+        }
+        .main {
+            background-color: rgb(231, 8, 8);
+            position: relative;
+            z-index: 2;
+            margin-top: 200px;
+            margin-left: 600px;
+            align-content: center;
+            justify-content: center;
+            border-radius: 15%;
+            width: 300px;
+            height: 300px;
+            border: 2px solid darkgrey;
+            text-align: center;
+        }
+        .cen {
+            border: 10px grey;
+            height: 300px;
+            width: 300px;
+            border-radius: 10px;
+        }
+        button {
+            margin: 7px;
+        }
+        button:hover {
+            background-color: rgb(34, 245, 227);
+            font-size: larger;
+        }
+        #output {
+            background-color: beige;
+            font-size: larger;
+            margin-left: 15%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: max-content;
+            height: max-content;
+            border: 2px solid darkgrey;
+            text-align: center;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <h1>Training Courses</h1>
+        <div class="cen">
+            <button onclick="fetchCourses()">Get All Courses</button>
+            <br>
+            <button onclick="fetchCourseById()">Get Course By ID</button>
+            <br>
+            <button onclick="createCourse()">Add Course</button>
+            <br>
+            <button onclick="updateCourse()">Update Course</button>
+            <br>
+            <button onclick="deleteCourse()">Delete Course</button>
+            <br>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+    <div id="output"></div>
+
+    <script>
+        const serverUrl = 'http://localhost:8080';
+
+        async function checkAuth() {
+            const response = await fetch(`${serverUrl}/checkAuth`);
+            if (response.status !== 200) {
+                window.location.href = '/login.html'; 
+            }
+        }
+
+        async function fetchCourses() {
+            fetch(`${serverUrl}/courses`)
+                .then(response => response.json())
+                .then(data => displayOutput(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        async function fetchCourseById() {
+            const id = prompt("Enter Course ID:");
+            fetch(`${serverUrl}/courses/${id}`)
+                .then(response => response.json())
+                .then(data => displayOutput([data]))
+                .catch(error => console.error('Error:', error));
+        }
+
+        async function createCourse() {
+            const course = {
+                title: prompt("Enter course title:"),
+                description: prompt("Enter course description:"),
+                created_at: new Date().toISOString()
+            };
+
+            fetch(`${serverUrl}/courses`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(course)
+            })
+                .then(response => response.json())
+                .then(data => displayOutput([data]))
+                .catch(error => console.error('Error:', error));
+        }
+
+        async function updateCourse() {
+            const id = prompt("Enter Course ID:");
+            const course = {
+                title: prompt("Enter new course title:"),
+                description: prompt("Enter new course description:")
+            };
+
+            fetch(`${serverUrl}/courses/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(course)
+            })
+                .then(response => response.json())
+                .then(data => displayOutput([data]))
+                .catch(error => console.error('Error:', error));
+        }
+
+        async function deleteCourse() {
+            const id = prompt("Enter Course ID:");
+            fetch(`${serverUrl}/courses/${id}`, {
+                method: 'DELETE'
+            })
+                .then(response => response.json())
+                .then(data => displayOutput([data]))
+                .catch(error => console.error('Error:', error));
+        }
+
+        async function logout() {
+            const response = await fetch(`${serverUrl}/logout`);
+            if (response.ok) {
+                window.location.href = '/login.html'; 
+            }
+        }
+
+        function displayOutput(data) {
+            const outputDiv = document.getElementById('output');
+            if (Array.isArray(data)) {
+                let table = '<table>';
+                table += '<tr>';
+                for (const key in data[0]) {
+                    table += `<th>${key}</th>`;
+                }
+                table += '</tr>';
+                data.forEach(item => {
+                    table += '<tr>';
+                    for (const key in item) {
+                        table += `<td>${item[key]}</td>`;
+                    }
+                    table += '</tr>';
+                });
+                table += '</table>';
+                outputDiv.innerHTML = table;
+            } else {
+                outputDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

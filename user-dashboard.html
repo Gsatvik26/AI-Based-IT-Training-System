@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSphere</title>
+    <link rel="stylesheet" href="backend/public/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: lightgray;
+            margin: 0 5px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .tab:hover {
+            background-color: #e0e0e0;
+        }
+
+        .tab.active {
+            background: #1f42bfeb;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            margin: 20px auto;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .active-content {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress {
+            background-color: lightgreen;
+            height: 20px;
+            width: 0;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            transition: width 0.5s ease;
+        }
+
+        .course-button {
+            display: block;
+            width: 90%;
+            margin: 10px auto;
+            padding: 15px;
+            background-color: #1f42bfeb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .course-button:hover {
+            background-color: #0e2a91;
+            transform: translateY(-2px);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .video-container {
+            margin: 20px auto;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        nav {
+            background-color: #1f42bfeb;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        nav ul li {
+            display: inline;
+            margin: 0 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 15px;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #1f42bfeb;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            font-size: 8px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li><a href="index.html">Logout</a></li>
+        </ul>
+    </nav>
+    <h1>User Interface</h1>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('courses-list')">Courses</div>
+        <!-- Assessments tab should only appear after the course is completed -->
+        <div class="tab" id="assessmentTab" style="display: none;" onclick="showTab('assessments')">Assessments</div>
+    </div>
+
+    <!-- Course List -->
+    <div id="courses-list" class="tab-content active-content">
+        <h2>Select a Course</h2>
+        <button class="course-button" onclick="openCourse(1)">Course: Introduction to Python</button>
+        <button class="course-button" onclick="openCourse(2)">Course: Introduction to Machine Learning</button>
+        <button class="course-button" onclick="openCourse(3)">Course: Introduction to Artificial Intelligence</button>
+    </div>
+
+    <!-- Course Content -->
+    <div id="course-content" class="tab-content">
+        <h2 id="course-title">Course Title</h2>
+        <div class="progress-bar">
+            <div class="progress" id="progress-bar">0%</div>
+        </div>
+        <div id="video-list"></div>
+        <button id="assessmentButton" onclick="takeAssessment(currentCourseId)" disabled>Take Assessment</button>
+    </div>
+
+    <!-- Assessments -->
+    <div id="assessments" class="tab-content">
+        <h2>Take Assessment</h2>
+        <form id="assessmentForm" onsubmit="submitAssessment(event)">
+            <h3 id="assessment-title"></h3>
+            <div id="assessment-questions"></div>
+            <button type="submit">Submit Assessment</button>
+        </form>
+        <div id="assessment-results"></div>
+    </div>
+
+    <footer>&copy; All Rights Reserved 2024</footer>
+
+    <script>
+        let totalVideos = 0;
+        let completedVideos = 0;
+        let currentCourseId = 0;
+        let currentQuestions = [];
+        let previousResults = {};
+
+        const keywords = {
+            1: ["Python", "Matplotlib", "Seaborn"],
+            2: ["Einstein", "theory", "relativity"],
+            3: ["React", "JavaScript", "library"]
+        };
+
+        const mcqQuestions = {
+            1: [
+                {
+                    question: "Which language did you learn in this Course?",
+                    options: ["Java", "C++", "C", "Python"],
+                    answer: "Python"
+                }
+            ],
+            2: [
+                {
+                    question: "Who developed the theory of relativity?",
+                    options: ["Newton", "Einstein", "Galileo", "Curie"],
+                    answer: "Einstein"
+                }
+            ],
+            3: [
+                {
+                    question: "What does HTML stand for?",
+                    options: ["HyperText Markup Language", "HighText Machine Language", "HyperTabular Markup Language", "None of the above"],
+                    answer: "HyperText Markup Language"
+                }
+            ]
+        };
+
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const tabButtons = document.querySelectorAll('.tab');
+
+            tabs.forEach(tab => tab.classList.remove('active-content'));
+            tabButtons.forEach(tab => tab.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active-content');
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+        }
+
+        function openCourse(courseId) {
+            const courseTitle = {
+                1: 'Course 1',
+                2: 'Course 2',
+                3: 'Course 3'
+            };
+
+            const videos = {
+                1: [
+                    { title: 'Video 1', src: 'https://www.youtube.com/watch?v=kqtD5dpn9C8' },
+                    { title: 'Video 2', src: 'path_to_video2.mp4' }
+                ],
+                2: [
+                    { title: 'Video 1', src: 'path_to_video4.mp4' },
+                    { title: 'Video 2', src: 'path_to_video5.mp4' }
+                ],
+                3: [
+                    { title: 'Video 1', src: 'path_to_video7.mp4' },
+                    { title: 'Video 2', src: 'path_to_video8.mp4' }
+                ]
+            };
+
+            totalVideos = videos[courseId].length;
+            completedVideos = 0;
+            currentCourseId = courseId;
+
+            document.getElementById('course-title').innerText = courseTitle[courseId];
+            const videoList = document.getElementById('video-list');
+            videoList.innerHTML = '';
+
+            videos[courseId].forEach((video, index) => {
+                const videoItem = document.createElement('div');
+                videoItem.classList.add('video-container');
+                videoItem.innerHTML = `
+                    <h3>${video.title}</h3>
+                    <video width="600" controls>
+                        <source src="${video.src}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <button id="mark-button-${index}" onclick="markAsComplete(${index})">Mark as Complete</button>
+                `;
+                videoList.appendChild(videoItem);
+            });
+
+            showTab('course-content');
+            updateProgress();
+        }
+
+        function markAsComplete(index) {
+            const button = document.getElementById(`mark-button-${index}`);
+            button.disabled = true;
+            completedVideos++;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            const percentage = Math.round((completedVideos / totalVideos) * 100);
+            progressBar.style.width = `${percentage}%`;
+            progressBar.innerText = `${percentage}%`;
+
+            const assessmentButton = document.getElementById('assessmentButton');
+            const assessmentTab = document.getElementById('assessmentTab');
+            if (completedVideos === totalVideos) {
+                assessmentButton.disabled = false;
+                assessmentTab.style.display = 'inline'; // Show assessments tab only after course completion
+            }
+        }
+
+        function takeAssessment(courseId) {
+            window.location.href = 'test.html';
+        //     currentQuestions = [];
+        //     const assessmentTitle = {
+        //         1: 'Assessment for Course 1',
+        //         2: 'Assessment for Course 2',
+        //         3: 'Assessment for Course 3'
+        //     };
+
+        //     document.getElementById('assessment-title').innerText = assessmentTitle[courseId];
+        //     const questionsContainer = document.getElementById('assessment-questions');
+        //     questionsContainer.innerHTML = '';
+
+        //     const mcqQuestion = mcqQuestions[courseId][0];
+        //     const mcqElement = document.createElement('div');
+        //     mcqElement.innerHTML = `
+        //         <label>${mcqQuestion.question}</label><br>
+        //         ${mcqQuestion.options.map(option => `
+        //             <input type="radio" name="mcq-answer" value="${option}" required>${option}<br>
+        //         `).join('')}
+        //     `;
+        //     questionsContainer.appendChild(mcqElement);
+
+        //     const descriptiveElement = document.createElement('div');
+        //     descriptiveElement.innerHTML = `
+        //         <label>Describe the main features of this course:</label><br>
+        //         <textarea name="descriptive-answer" rows="4" required></textarea>
+        //     `;
+        //     questionsContainer.appendChild(descriptiveElement);
+
+        //     showTab('assessments');
+        // }
+
+        // async function submitAssessment(event) {
+        // event.preventDefault();
+        // const formData = new FormData(event.target);
+        // let score = 0;
+        // let descriptiveAnswer = formData.get('descriptive-answer').toLowerCase();
+        // const keywordList = keywords[currentCourseId];
+
+        // if (keywordList.some(keyword => descriptiveAnswer.includes(keyword.toLowerCase()))) {
+        //     score += 50; 
+        // }
+
+        // const mcqAnswer = formData.get('mcq-answer');
+        // const correctMCQAnswer = mcqQuestions[currentCourseId][0].answer;
+        // if (mcqAnswer === correctMCQAnswer) {
+        //     score += 50; 
+        // }
+
+        // const resultsContainer = document.getElementById('assessment-results');
+        // resultsContainer.innerHTML = `<h3>Your Score: ${score} / 100</h3>`;
+
+        // previousResults[currentCourseId] = score;
+
+        // const userId = 1; // Replace with actual user ID
+        // const data = {
+        //     courseId: currentCourseId,
+        //     score: score,
+        //     userId: userId
+        // };
+
+        // // Send score to the backend
+        // try {
+        //     const response = await fetch('/save-assessment', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(data)
+        //     });
+
+        //     if (response.ok) {
+        //         console.log('Assessment saved successfully');
+        //     } else {
+        //         console.log('Failed to save assessment');
+        //     }
+        // } catch (error) {
+        //     console.error('Error:', error);
+        // }
+    }
+
+    </script>
+</body>
+</html>

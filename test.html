@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assessment Submission</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f7f6;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+      }
+
+      label {
+        font-size: 1rem;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+
+      textarea {
+        height: 150px;
+        resize: vertical;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      button:active {
+        background-color: #388e3c;
+      }
+
+      .marks-display {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Assessment</h1>
+    <form id="assessment-form">
+      <label>MCQ Question: What is the preferred language for Machine Learning?</label>
+      <div class="mcq-options">
+        <input
+          type="radio"
+          id="mcq-option-a"
+          name="mcqAnswer"
+          value="A"
+          required
+        />
+        <label for="mcq-option-a">A. Python</label><br />
+        <input
+          type="radio"
+          id="mcq-option-b"
+          name="mcqAnswer"
+          value="B"
+        />
+        <label for="mcq-option-b">B. C++</label><br />
+        <input
+          type="radio"
+          id="mcq-option-c"
+          name="mcqAnswer"
+          value="C"
+        />
+        <label for="mcq-option-c">C. C</label><br />
+        <input
+          type="radio"
+          id="mcq-option-d"
+          name="mcqAnswer"
+          value="D"
+        />
+        <label for="mcq-option-d">D. Java</label><br />
+      </div>
+
+      <label for="descriptive-answer">Define Machine Learning:</label>
+      <textarea
+        id="descriptive-answer"
+        name="descriptiveAnswer"
+        required
+      ></textarea>
+      <br /><br />
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <div class="marks-display" id="marks-display" style="display: none;">
+      Total Marks: <span id="total-marks">0</span>
+    </div>
+
+    <script>
+      document
+        .getElementById("assessment-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          // Get the selected MCQ answer and descriptive answer
+          const mcqAnswer = document.querySelector('input[name="mcqAnswer"]:checked')?.value;
+          const descriptiveAnswer = document.getElementById("descriptive-answer").value;
+
+          // MCQ Evaluation (correct answer is 'A')
+          let mcqScore = 0;
+          if (mcqAnswer === "A") {
+            mcqScore = 1; // Correct answer
+          }
+
+          // Descriptive Evaluation (simple keyword matching)
+          let descriptiveScore = 0;
+          const keywords = ["Paris", "capital", "France"];
+          for (let keyword of keywords) {
+            if (descriptiveAnswer.toLowerCase().includes(keyword.toLowerCase())) {
+              descriptiveScore += 1; // Award points for each keyword found
+            }
+          }
+
+          // Calculate total score
+          const totalScore = mcqScore + descriptiveScore;
+
+          // Send data to the server
+          const response = await fetch("/submit-assessment", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              mcqAnswer,
+              descriptiveAnswer,
+              mcqScore,
+              descriptiveScore,
+              totalScore,
+            }),
+          });
+
+          if (response.ok) {
+            // Display marks on the page
+            document.getElementById("total-marks").textContent = totalScore;
+            document.getElementById("marks-display").style.display = "block";
+          } else {
+            alert("Error saving the assessment");
+          }
+        });
+    </script>
+  </body>
+</html>
